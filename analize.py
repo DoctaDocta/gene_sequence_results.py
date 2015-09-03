@@ -1,5 +1,5 @@
 # This script will read the results of sequenced samples of CCA. MUST BE ORGANIZED AND STAT ANALYZED
-# see this url to retreive sequencing data: ________________________
+# see this url to retreive sequencing data: https://tcga-data.nci.nih.gov/tcga/tcgaCancerDetails.jsp?diseaseType=CHOL&diseaseName=Cholangiocarcinoma
 # There are two different types... RNA and Micro-RNA
 # This script just samples RNA...
 
@@ -14,6 +14,11 @@ import csv
 # with something like cabinet[9].barcode or cabinet[]
 cabinet = []
 numberOfCases = 36 + 9 #36 matched cases plus 9 healthy cases.
+
+#these arrays are to store user input, it is a step towards making this code reproducable for any dataset of sequenced genomes.
+samplesYouNeed = [];
+barcodeFilenamesYouNeed = [];
+
 
 #this is the overall structure of each case. There will be 45 total for the RNA
 class Case:
@@ -57,43 +62,56 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 	for line in reader:
 		i = i+1
 		for bb in cabinet:
-			print "current state of the cabinet: ", bb.sample
+			print "Current state of the cabinet: ", bb.sample
 		if "TCGA" in line[5]: #removed the top three rows of manifest b/c unnecessary
-			print "current sample", i,"from manifest: "
-			print "sample: ", line[5], "barcode_filename: ",line[6] #not necessary
+			print "Sample", i,"from manifest:", line[5], "barcode_filename: ",line[6] #not necessary
 			samples.append(line[5]) #not necassary but shines a light on sample names
+			print "		searching cabinet..."
 			for l in cabinet:
-				print "searching cabinet..."
-				print "current case in Cabinet: ", l.sample
+				print "		current case in Cabinet: ", l.sample
 				if (line[5] == l.sample): #the sample is already in cabinet
 					fileInCabinet = True;
-					placeHolder = cabinet.index(line[5]); #find position of the Case
-					print "placeHolder: ", placeHolder
+					placeHolder = cabinet.index(l); #find position of the Case  #THERES SOMETHING WRONG HERE!!!
+					print "		Found the case in cabinet"
+					print "		placeHolder: ", placeHolder, "for case in cabinet"
 			if (fileInCabinet == True): #this needs to be after the for loop
 										#b/c we search the whole cabinet
-				print "found the case in cabinet"
 				if "genes.normalized" in line[6]:
 					cabinet[placeHolder].genes_norms(line[6])
-				if "genes.results" in line[6]:
+					print "		Genes_norms added to case in cabinet"
+				elif "genes.results" in line[6]:
 					cabinet[placeHolder].genes_results(line[6])
-				if "isoforms.normalized" in line[6]:
-					cabinet[placeHolder].genes_norms(line[6])
-				if "isoforms.results" in line[6]:
-					cabinet[placeHolder].genes_norms(line[6])
+					print "		genes_results added to case in cabinet"
+				elif "isoforms.normalized" in line[6]:
+					cabinet[placeHolder].isoforms_norms(line[6])
+					print "		isoforms_norms added to case in cabinet"
+				elif "isoforms.results" in line[6]:
+					cabinet[placeHolder].isoforms_results(line[6])
+					print "		genes_results added to case in cabinet"
+				else:
+					print "		the associated barcode_filename is not needed"
 			else: #the sample is not already in Cabinet... (fileInCabinet == false)
-				print "the case wasn't in cabinet"
+				print "		the case wasn't found in cabinet"
 				x = Case(line[5], 'none')
 				if "genes.normalized" in line[6]:
 					x.genes_norms(line[6])
+					print "		genes_norms added to new case", x.sample
 				elif "genes.results" in line[6]:
 					x.genes_results(line[6])
+					print "		genes_results added to new case", x.sample
 				elif "isoforms.results" in line[6]:
 					x.isoforms_results(line[6])
+					print "		isoforms_results added to new case", x.sample
 				elif "isoforms.normalized" in line[6]:
 					x.isoforms_norms(line[6])
+					print "		isoforms_norms added to new case", x.sample
+				else:
+					print "		the associated barcode_filename is not needed"
+					#print new line
 				cabinet.append(x)
+				print "		case with sample", x.sample, "added to filing cabinet"
 		else:
-			print "current sample",i, "or barcode_filename from manifest... is not needed"
+			print "current row",i,"does not contain a sample"
 		#cabinet.append(x)
 
 print "whole list of samples: ", len(samples), "verified by lines in RNA manifest: ", i/6
@@ -101,3 +119,8 @@ setSamples = list(set(samples))
 for l in setSamples:
 	print "sample name in array 'samples': ", l
 print "simplified list of samples: ", len(setSamples)
+
+
+# once i get all of the proper files into the proper gene Case, i can move to read in those files and extract
+# the results Larry needs for his research
+# instead of storing those values in python, i want to output them into files that he can read with R or Perl...
