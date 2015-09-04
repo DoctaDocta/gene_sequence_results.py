@@ -30,13 +30,13 @@ class Case:
 	isoforms_results = "nothing added yet..."
 	genes_norms = "..."
 	isoforms_norms = "..."
-	def isoforms_norms(self,isoforms_norms):
+	def add_isoforms_norms(self,isoforms_norms): #function to add attribute to the object...
 		self.isoforms_norms = isoforms_norms;
-	def genes_norms(self,genes_norms):
+	def add_genes_norms(self,genes_norms):
 		self.genes_norms = genes_norms;
-	def genes_results(self,genes_results):
+	def add_genes_results(self,genes_results):
 		self.genes_results = genes_results;
-	def isoforms_results(self,isoforms_results):
+	def add_isoforms_results(self,isoforms_results):
 		self.isoforms_results = isoforms_results;
 # you can add attributes (or attr's) to your cases by defining (or def) functions to input
 # check out the code i already wrote and mess figure out how it works...
@@ -61,32 +61,30 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 	print "reading in file_manifest, now iterating through line by line..."
 	for line in reader:
 		i = i+1
-		for bb in cabinet:
-			print "Current state of the cabinet: ", bb.sample
 		if "TCGA" in line[5]: #removed the top three rows of manifest b/c unnecessary
 			print "Sample", i,"from manifest:", line[5], "barcode_filename: ",line[6] #not necessary
 			samples.append(line[5]) #not necassary but shines a light on sample names
 			print "		searching cabinet..."
 			for l in cabinet:
-				print "		current case in Cabinet: ", l.sample
+				print "		current state of Cabinet: ", l.sample, l.genes_results, l.genes_norms, l.isoforms_norms, l.isoforms_results
 				if (line[5] == l.sample): #the sample is already in cabinet
 					fileInCabinet = True;
-					placeHolder = cabinet.index(l); #find position of the Case  #THERES SOMETHING WRONG HERE!!!
+					placeHolder = cabinet.index(l); #find position of the Case
 					print "		Found the case in cabinet"
 					print "		placeHolder: ", placeHolder, "for case in cabinet"
 			if (fileInCabinet == True): #this needs to be after the for loop
 										#b/c we search the whole cabinet
 				if "genes.normalized" in line[6]:
-					cabinet[placeHolder].genes_norms(line[6])
+					cabinet[placeHolder].add_genes_norms(line[6])
 					print "		Genes_norms added to case in cabinet"
 				elif "genes.results" in line[6]:
-					cabinet[placeHolder].genes_results(line[6])
+					cabinet[placeHolder].add_genes_results(line[6])
 					print "		genes_results added to case in cabinet"
 				elif "isoforms.normalized" in line[6]:
-					cabinet[placeHolder].isoforms_norms(line[6])
+					cabinet[placeHolder].add_isoforms_norms(line[6])
 					print "		isoforms_norms added to case in cabinet"
 				elif "isoforms.results" in line[6]:
-					cabinet[placeHolder].isoforms_results(line[6])
+					cabinet[placeHolder].add_isoforms_results(line[6])
 					print "		genes_results added to case in cabinet"
 				else:
 					print "		the associated barcode_filename is not needed"
@@ -94,16 +92,16 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 				print "		the case wasn't found in cabinet"
 				x = Case(line[5], 'none')
 				if "genes.normalized" in line[6]:
-					x.genes_norms(line[6])
+					x.add_genes_norms(line[6])
 					print "		genes_norms added to new case", x.sample
 				elif "genes.results" in line[6]:
-					x.genes_results(line[6])
+					x.add_genes_results(line[6])
 					print "		genes_results added to new case", x.sample
 				elif "isoforms.results" in line[6]:
-					x.isoforms_results(line[6])
+					x.add_isoforms_results(line[6])
 					print "		isoforms_results added to new case", x.sample
 				elif "isoforms.normalized" in line[6]:
-					x.isoforms_norms(line[6])
+					x.add_isoforms_norms(line[6])
 					print "		isoforms_norms added to new case", x.sample
 				else:
 					print "		the associated barcode_filename is not needed"
@@ -120,6 +118,14 @@ for l in setSamples:
 	print "sample name in array 'samples': ", l
 print "simplified list of samples: ", len(setSamples)
 
+print "final state of filing Cabinet..."
+for l in cabinet:
+	print l.sample, l.genes_results, l.genes_norms, l.isoforms_norms, l.isoforms_results, '\n'
+	print 'length of cabinet: ', len(cabinet)
+
+print "verify that all samples are in the cabinet..."
+for l in setSamples:
+	print cabinet.index(l)
 
 # once i get all of the proper files into the proper gene Case, i can move to read in those files and extract
 # the results Larry needs for his research
