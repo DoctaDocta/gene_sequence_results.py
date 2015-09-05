@@ -20,7 +20,12 @@ import csv
 cabinet = [] #this array will hold 45 object containing info on each sample.
 numberOfCases = 36 + 9 #36 matched cases plus 9 healthy cases.
 samples = [] #this array will hold sample names to verify the cabinet.
+
+
 manifestFile = "TCGA CHOL RNA-seq/file_manifest.txt"; #this is the manifest.
+#append this before each filename so python can find the file.
+# it is based on folder structure of results dl'd from website.
+pathToDataFiles = "TCGA CHOL RNA-seq/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/"
 
 # these arrays are to store user input
 # a step towards making this code reproducable for any set of sequenced gene results.
@@ -36,18 +41,29 @@ class Case:
 		self.sample = sample;				#see example below class definition
 		self.tissue_type = tissue_type;
 		#self.files
-	genes_results = ""; #attributes for the Case. These are filenames. We also need specific data names.
-	isoforms_results = "";
-	genes_norms = "";
-	isoforms_norms = "";
-	def add_isoforms_norms(self,isoforms_norms): #functions to add attribute to the object...
-		self.isoforms_norms = isoforms_norms;
-	def add_genes_norms(self,genes_norms):
-		self.genes_norms = genes_norms;
-	def add_genes_results(self,genes_results):
-		self.genes_results = genes_results;
-	def add_isoforms_results(self,isoforms_results):
-		self.isoforms_results = isoforms_results;
+	genes_results_file = ""; #attributes for the Case. These are filenames. We also need specific data names.
+	genes_results = {"geneId":"multiple transcript id's"}
+	isoforms_results_file = "";
+	isoforms_results = {"isoform_id":"scaled_estimate??"}
+	genes_norms_file = "";
+	genes_norms = {"gene_id":"normalized_count"}
+	isoforms_norms_file = "";
+	def add_isoforms_norms_file(self,isoforms_norms_file): #functions to add attribute to the object...
+		self.isoforms_norms_file = isoforms_norms_file;
+		path = pathToDataFiles + "/" + isoforms_norms_file;
+
+	def add_genes_norms(self,genes_norms_file):
+		self.genes_norms_file = genes_norms_file;
+		path = pathToDataFiles + "/" +  genes_norms_file;
+
+	def add_genes_results_file(self,genes_results_file):
+		self.genes_results_file = genes_results_file;
+		path = pathToDataFiles + "/" + genes_results_file;
+
+	def add_isoforms_results(self,isoforms_results_file):
+		self.isoforms_results_file = isoforms_results_file;
+		path = pathToDataFiles + "/" +  isoforms_results_file;
+
 # you can add attributes (or attr's) to your cases by defining (or def) functions to input
 # check out the code i already wrote and mess figure out how it works...
 # learned from: http://sthurlow.com/python/lesson08/
@@ -79,14 +95,14 @@ with open(manifestFile, 'rb') as f:
 			print "\t\tCurrent state of Cabinet:"
 			for l in cabinet:
 				print l.sample
-				if (l.genes_results):
-					print "\t\t\t\t\t\t\t", l.genes_results.split("rsem.",1)[1], "[check!]" #split breaks one string into two from the end of the keyword it is passed.
-				if (l.genes_norms):															#and the end [1] picks the string after the keyword, not the string before.
-					print "\t\t\t\t\t\t\t", l.genes_norms.split("rsem.",1)[1], "[check!]"	# I did this jsut for readability. We need the whole filename stored in the Case.
-				if (l.isoforms_norms):
-					print "\t\t\t\t\t\t\t",l.isoforms_norms.split("rsem.",1)[1], "[check!]"
-				if (l.isoforms_results):
-					print "\t\t\t\t\t\t\t",l.isoforms_results.split("rsem.",1)[1], "[check!]"
+				if (l.genes_results_file):
+					print "\t\t\t\t\t\t\t", l.genes_results_file.split("rsem.",1)[1], "[check!]" #split breaks one string into two from the end of the keyword it is passed.
+				if (l.genes_norms_file):															#and the end [1] picks the string after the keyword, not the string before.
+					print "\t\t\t\t\t\t\t", l.genes_norms_file.split("rsem.",1)[1], "[check!]"	# I did this jsut for readability. We need the whole filename stored in the Case.
+				if (l.isoforms_norms_file):
+					print "\t\t\t\t\t\t\t",l.isoforms_norms_file.split("rsem.",1)[1], "[check!]"
+				if (l.isoforms_results_file):
+					print "\t\t\t\t\t\t\t",l.isoforms_results_file.split("rsem.",1)[1], "[check!]"
 				if (line[5] == l.sample): #the sample is already in cabinet.
 					fileInCabinet = True; #change boolean for flow control.s
 					placeHolder = cabinet.index(l); #find position of the Case
@@ -98,14 +114,14 @@ with open(manifestFile, 'rb') as f:
 					cabinet[placeHolder].add_genes_norms(line[6])
 					print "\t\tGenes_norms added to case in cabinet"
 				elif "genes.results" in line[6]:
-					cabinet[placeHolder].add_genes_results(line[6])
-					print "\t\tgenes_results added to case in cabinet"
+					cabinet[placeHolder].add_genes_results_file(line[6])
+					print "\t\tgenes_results_file added to case in cabinet"
 				elif "isoforms.normalized" in line[6]:
-					cabinet[placeHolder].add_isoforms_norms(line[6])
-					print "\t\tisoforms_norms added to case in cabinet"
+					cabinet[placeHolder].add_isoforms_norms_file(line[6])
+					print "\t\tisoforms_norms_file added to case in cabinet"
 				elif "isoforms.results" in line[6]:
 					cabinet[placeHolder].add_isoforms_results(line[6])
-					print "\t\tgenes_results added to case in cabinet"
+					print "\t\tgenes_results_file added to case in cabinet"
 				else:
 					print "\t\tthe associated barcode_filename is not needed"
 				fileInCabinet = False #now search is done, reset this indicator to False for next sample.
@@ -115,16 +131,16 @@ with open(manifestFile, 'rb') as f:
 				print "\t\tcase with sample", x.sample, "added to filing cabinet"
 				if "genes.normalized" in line[6]:
 					x.add_genes_norms(line[6]) # give the object an attribute
-					print "\t\twith genes_norms", x.sample
+					print "\t\twith genes_norms_file", x.sample
 				elif "genes.results" in line[6]:
-					x.add_genes_results(line[6])
-					print "\t\twith genes_results", x.sample
+					x.add_genes_results_file(line[6])
+					print "\t\twith genes_results_file", x.sample
 				elif "isoforms.results" in line[6]:
 					x.add_isoforms_results(line[6])
-					print "\t\twith isoforms_results", x.sample
+					print "\t\twith isoforms_results_file", x.sample
 				elif "isoforms.normalized" in line[6]:
-					x.add_isoforms_norms(line[6])
-					print "\t\twith isoforms_norms", x.sample
+					x.add_isoforms_norms_file(line[6])
+					print "\t\twith isoforms_norms_file", x.sample
 				cabinet.append(x) #and add it to the cabinet.
 		else: #this means the string "rsem." is not in line[6], therefore the line isn't important for our purposes.
 			print "current row",i,"does not contain a sample or proper barcode_filename\n"
@@ -141,7 +157,7 @@ cabinetSampleNames = []#array to compare to setSamples for verifying that we cau
 print "\n\nOverview of Filing Cabinet w/ shortened filenames..."
 for l in cabinet:
 	cabinetSampleNames.append(l.sample) #fill the verification array
-	print "\t",cabinet.index(l),l.sample, l.genes_results.split("rsem.",1)[1], l.genes_norms.split("rsem.",1)[1], l.isoforms_norms.split("rsem.",1)[1], l.isoforms_results.split("rsem.",1)[1], '\n'
+	print "\t",cabinet.index(l),l.sample, l.genes_results_file.split("rsem.",1)[1], l.genes_norms_file.split("rsem.",1)[1], l.isoforms_norms_file.split("rsem.",1)[1], l.isoforms_results_file.split("rsem.",1)[1], '\n'
 print 'length of cabinet: ', len(cabinet)
 
 diffCheck = (set(cabinetSampleNames) - set(setSamples)); #array with only uncommon elements.
@@ -152,6 +168,25 @@ if diffCheck: #if diffCheck is an array that is NOT empty
 else: # else, diffCheck is empty array
 	print "verfication complete! The cabinet is up to date."
 
-# once i get all of the proper files into the proper gene Case, i can move to read in those files and extract
-# the results Larry needs for his research
-# instead of storing those values in python, i want to output them into files that he can read with R or Perl...
+# Now all the associated files for each sample are in the same Case, all in the array called Cabinets
+
+# i need to go into each file for the results Larry needs for his research
+# instead of storing those values in python,
+# i want to output them into files that he can read with R or Perl...
+
+#test import of gene_results
+filePath = pathToDataFiles + cabinet[0].genes_results_file
+with open(filePath, 'rb') as f:
+	reader = csv.reader(f, delimiter="\t")
+	for line in reader:
+		print line
+		arrayify = line[3].split(",")
+		lengthArrayify = len(arrayify)
+		cabinet[0].genes_results[line[0]] = arrayify
+		for l in arrayify:
+			print l
+ctr = 0;
+while ctr<10:
+	for l, m in cabinet[0].genes_results:
+		print l, m
+		ctr = ctr + 1
