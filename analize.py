@@ -20,6 +20,11 @@ samples = []
 samplesYouNeed = [];
 barcodeFilenamesYouNeed = [];
 
+#helper function
+def diff(a, b):
+	b = set(b)
+	return [aa for aa in a if aa not in b]
+
 
 #this is the overall structure of each case. There will be 45 total for the RNA
 class Case:
@@ -62,10 +67,10 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 	print "reading in file_manifest, line by line..."
 	for line in reader:
 		i = i+1
-		if "rsem" in line[6]:#removed the top three rows of manifest & two quantification filename_barcodes b/c unnecessary
-			print "\nLine", i,"from manifest. Sample:", line[5], "Barcode_filename: ",line[6]#.split("rsem.",1)[1] #not necessary
+		if "rsem" in line[6]:#remove top 3 rows, and also two quantification filename_barcodes per sample b/c unnecessary
+			print "\nLine", i,"from manifest. Sample:", line[5], "\nBarcode_filename: ",line[6].split("rsem.",1)[1] #not necessary
 			samples.append(line[5]) #not necassary but shines a light on sample names
-			print "		searching cabinet...\nCurrent state of Cabinet:"
+			print "\t\tCurrent state of Cabinet:"
 			for l in cabinet:
 				print l.sample
 				if (l.genes_results):
@@ -119,22 +124,19 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 			print "current row",i,"does not contain a sample or proper barcode_filename\n"
 			#cabinet.append(x)
 
+#this area is a poor man's diffchecker. Did the Cabinet catch all of the samples?
 setSamples = list(set(samples))
-
-print "set of all sample names: ", len(samples), "set of unique of sample names: ", len(setSamples)
+print "set of unique of sample names: ", len(setSamples)
 for l in setSamples:
-	print "unique sample name: ", l
+	print "\tsample name: ", l
 
-print "final state of filing Cabinet w/ shortened filenames..."
+cabinetSampleNames = []
+
+print "\n\nfinal state of filing Cabinet w/ shortened filenames..."
 for l in cabinet:
-	print l.sample, l.genes_results.split("rsem.",1)[1], l.genes_norms.split("rsem.",1)[1], l.isoforms_norms.split("rsem.",1)[1], l.isoforms_results.split("rsem.",1)[1], '\n'
+	cabinetSampleNames.append(l.sample)
+	print "\t",cabinet.index(l),l.sample, l.genes_results.split("rsem.",1)[1], l.genes_norms.split("rsem.",1)[1], l.isoforms_norms.split("rsem.",1)[1], l.isoforms_results.split("rsem.",1)[1], '\n'
 print 'length of cabinet: ', len(cabinet)
-
-print "verify that all samples are in the cabinet..."
-for l in setSamples:
-	print cabinet.index(l)
-
-print cabinetCount
 
 # once i get all of the proper files into the proper gene Case, i can move to read in those files and extract
 # the results Larry needs for his research
