@@ -14,6 +14,7 @@ import csv
 # with something like cabinet[9].barcode or cabinet[]
 cabinet = []
 numberOfCases = 36 + 9 #36 matched cases plus 9 healthy cases.
+samples = []
 
 #these arrays are to store user input, it is a step towards making this code reproducable for any dataset of sequenced genomes.
 samplesYouNeed = [];
@@ -26,10 +27,10 @@ class Case:
 		self.sample = sample;
 		self.tissue_type = tissue_type;
 		#self.files
-	genes_results = "nothing added yet..."
-	isoforms_results = "nothing added yet..."
-	genes_norms = "..."
-	isoforms_norms = "..."
+	genes_results = ""
+	isoforms_results = ""
+	genes_norms = ""
+	isoforms_norms = ""
 	def add_isoforms_norms(self,isoforms_norms): #function to add attribute to the object...
 		self.isoforms_norms = isoforms_norms;
 	def add_genes_norms(self,genes_norms):
@@ -58,15 +59,23 @@ placeHolder = -1;
 i = 0;
 with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 	reader = csv.reader(f, delimiter="\t")
-	print "reading in file_manifest, now iterating through line by line..."
+	print "reading in file_manifest, line by line..."
 	for line in reader:
 		i = i+1
-		if "TCGA" in line[5]: #removed the top three rows of manifest b/c unnecessary
-			print "Sample", i,"from manifest:", line[5], "barcode_filename: ",line[6] #not necessary
+		if "rsem" in line[6]:#removed the top three rows of manifest & two quantification filename_barcodes b/c unnecessary
+			print "\nLine", i,"from manifest. Sample:", line[5], "Barcode_filename: ",line[6]#.split("rsem.",1)[1] #not necessary
 			samples.append(line[5]) #not necassary but shines a light on sample names
 			print "		searching cabinet..."
 			for l in cabinet:
-				print "		current state of Cabinet: ", l.sample, l.genes_results, l.genes_norms, l.isoforms_norms, l.isoforms_results
+				print "		current state of Cabinet: ", l.sample
+				if (l.genes_results):
+					print "\t\t\t\t\t\t\t", l.genes_results.split("rsem.",1)[1], "[check!]"
+				if (l.genes_norms):
+					print "\t\t\t\t\t\t\t", l.genes_norms.split("rsem.",1)[1], "[check!]"
+				if (l.isoforms_norms):
+					print "\t\t\t\t\t\t\t",l.isoforms_norms.split("rsem.",1)[1], "[check!]"
+				if (l.isoforms_results):
+					print "\t\t\t\t\t\t\t",l.isoforms_results.split("rsem.",1)[1], "[check!]"
 				if (line[5] == l.sample): #the sample is already in cabinet
 					fileInCabinet = True;
 					placeHolder = cabinet.index(l); #find position of the Case
@@ -79,7 +88,7 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 					print "		Genes_norms added to case in cabinet"
 				elif "genes.results" in line[6]:
 					cabinet[placeHolder].add_genes_results(line[6])
-					print "		genes_results added to case in cabinet"
+					print "/t/tgenes_results added to case in cabinet"
 				elif "isoforms.normalized" in line[6]:
 					cabinet[placeHolder].add_isoforms_norms(line[6])
 					print "		isoforms_norms added to case in cabinet"
@@ -109,14 +118,14 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 				cabinet.append(x)
 				print "		case with sample", x.sample, "added to filing cabinet"
 		else:
-			print "current row",i,"does not contain a sample"
-		#cabinet.append(x)
+			print "current row",i,"does not contain a sample or proper barcode_filename"
+			#cabinet.append(x)
 
-print "whole list of samples: ", len(samples), "verified by lines in RNA manifest: ", i/6
 setSamples = list(set(samples))
+
+print "set of all sample names: ", len(samples), "set of unique of sample names: ", len(setSamples)
 for l in setSamples:
-	print "sample name in array 'samples': ", l
-print "simplified list of samples: ", len(setSamples)
+	print "unique sample name: ", l
 
 print "final state of filing Cabinet..."
 for l in cabinet:
