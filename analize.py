@@ -65,9 +65,9 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 		if "rsem" in line[6]:#removed the top three rows of manifest & two quantification filename_barcodes b/c unnecessary
 			print "\nLine", i,"from manifest. Sample:", line[5], "Barcode_filename: ",line[6]#.split("rsem.",1)[1] #not necessary
 			samples.append(line[5]) #not necassary but shines a light on sample names
-			print "		searching cabinet..."
+			print "		searching cabinet...\nCurrent state of Cabinet:"
 			for l in cabinet:
-				print "		current state of Cabinet: ", l.sample
+				print l.sample
 				if (l.genes_results):
 					print "\t\t\t\t\t\t\t", l.genes_results.split("rsem.",1)[1], "[check!]"
 				if (l.genes_norms):
@@ -85,40 +85,38 @@ with open('TCGA CHOL RNA-seq/file_manifest.txt', 'rb') as f:
 										#b/c we search the whole cabinet
 				if "genes.normalized" in line[6]:
 					cabinet[placeHolder].add_genes_norms(line[6])
-					print "		Genes_norms added to case in cabinet"
+					print "\t\tGenes_norms added to case in cabinet"
 				elif "genes.results" in line[6]:
 					cabinet[placeHolder].add_genes_results(line[6])
-					print "/t/tgenes_results added to case in cabinet"
+					print "\t\tgenes_results added to case in cabinet"
 				elif "isoforms.normalized" in line[6]:
 					cabinet[placeHolder].add_isoforms_norms(line[6])
-					print "		isoforms_norms added to case in cabinet"
+					print "\t\tisoforms_norms added to case in cabinet"
 				elif "isoforms.results" in line[6]:
 					cabinet[placeHolder].add_isoforms_results(line[6])
-					print "		genes_results added to case in cabinet"
+					print "\t\tgenes_results added to case in cabinet"
 				else:
-					print "		the associated barcode_filename is not needed"
+					print "\t\tthe associated barcode_filename is not needed"
+				fileInCabinet = False #now search is done, reset this indicator for next sample name
 			else: #the sample is not already in Cabinet... (fileInCabinet == false)
-				print "		the case wasn't found in cabinet"
+				print "\t\tthe case wasn't found in cabinet"
 				x = Case(line[5], 'none')
+				print "\t\tcase with sample", x.sample, "added to filing cabinet"
 				if "genes.normalized" in line[6]:
 					x.add_genes_norms(line[6])
-					print "		genes_norms added to new case", x.sample
+					print "\t\twith genes_norms", x.sample
 				elif "genes.results" in line[6]:
 					x.add_genes_results(line[6])
-					print "		genes_results added to new case", x.sample
+					print "\t\twith genes_results", x.sample
 				elif "isoforms.results" in line[6]:
 					x.add_isoforms_results(line[6])
-					print "		isoforms_results added to new case", x.sample
+					print "\t\twith isoforms_results", x.sample
 				elif "isoforms.normalized" in line[6]:
 					x.add_isoforms_norms(line[6])
-					print "		isoforms_norms added to new case", x.sample
-				else:
-					print "		the associated barcode_filename is not needed"
-					#print new line
+					print "\t\twith isoforms_norms", x.sample
 				cabinet.append(x)
-				print "		case with sample", x.sample, "added to filing cabinet"
 		else:
-			print "current row",i,"does not contain a sample or proper barcode_filename"
+			print "current row",i,"does not contain a sample or proper barcode_filename\n"
 			#cabinet.append(x)
 
 setSamples = list(set(samples))
@@ -127,14 +125,16 @@ print "set of all sample names: ", len(samples), "set of unique of sample names:
 for l in setSamples:
 	print "unique sample name: ", l
 
-print "final state of filing Cabinet..."
+print "final state of filing Cabinet w/ shortened filenames..."
 for l in cabinet:
-	print l.sample, l.genes_results, l.genes_norms, l.isoforms_norms, l.isoforms_results, '\n'
-	print 'length of cabinet: ', len(cabinet)
+	print l.sample, l.genes_results.split("rsem.",1)[1], l.genes_norms.split("rsem.",1)[1], l.isoforms_norms.split("rsem.",1)[1], l.isoforms_results.split("rsem.",1)[1], '\n'
+print 'length of cabinet: ', len(cabinet)
 
 print "verify that all samples are in the cabinet..."
 for l in setSamples:
 	print cabinet.index(l)
+
+print cabinetCount
 
 # once i get all of the proper files into the proper gene Case, i can move to read in those files and extract
 # the results Larry needs for his research
