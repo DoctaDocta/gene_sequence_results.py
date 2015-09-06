@@ -48,6 +48,7 @@ class Case:
 	genes_norms_file = "";
 	genes_norms = {"gene_id":"normalized_count"}
 	isoforms_norms_file = "";
+	isoforms_norms = {"isoform_id":"normalized_count"}
 	def add_isoforms_norms_file(self,isoforms_norms_file): #functions to add attribute to the object...
 		self.isoforms_norms_file = isoforms_norms_file;
 		path = pathToDataFiles + "/" + isoforms_norms_file;
@@ -174,19 +175,29 @@ else: # else, diffCheck is empty array
 # instead of storing those values in python,
 # i want to output them into files that he can read with R or Perl...
 
+
 #test import of gene_results
+#Make for loop to go through whole cabinet?
 filePath = pathToDataFiles + cabinet[0].genes_results_file
 with open(filePath, 'rb') as f:
+	print "\n\nReading in Gene Results"
 	reader = csv.reader(f, delimiter="\t")
 	for line in reader:
-		print line
+		#print line
 		arrayify = line[3].split(",")
-		lengthArrayify = len(arrayify)
+		#lengthArrayify = len(arrayify)
 		cabinet[0].genes_results[line[0]] = arrayify
-		for l in arrayify:
-			print l
-ctr = 0;
-while ctr<10:
-	for l, m in cabinet[0].genes_results:
-		print l, m
-		ctr = ctr + 1
+		#for l in arrayify:
+		#	print l
+
+filePath = pathToDataFiles + cabinet[0].isoforms_norms_file
+with open(filePath, 'rb') as f:
+	print "\n\nReading Isoforms Norms Results. Adding them to case in cabinet."
+	reader = csv.reader(f, delimiter="\t")
+	for line in reader:
+		cabinet[0].isoforms_norms[line[0]] = line[1]
+
+for l in cabinet[0].genes_results:
+	print l, cabinet[0].genes_results[l]
+for l in cabinet[0].isoforms_norms:
+	print l, cabinet[0].isoforms_norms[l]4
