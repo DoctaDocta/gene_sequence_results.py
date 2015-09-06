@@ -1,26 +1,25 @@
 
-####################################
-######## ABOUT THIS SCRIPY #########
-####################################
+#####################################
+#		 ABOUT THIS SCRIPY 			#
+#####################################
 # This script will read the results of sequenced samples of tissue
 # so they can easily be searched and organized by the scientist.
 # URL to retreive gene sequencing data for CCA tissue: https://tcga-data.nci.nih.gov/tcga/tcgaCancerDetails.jsp?diseaseType=CHOL&diseaseName=Cholangiocarcinoma
 
-
 # This script just samples RNA from the link above. it should be able to intepret other sets of data from the site.
-#ideally this will be a command line tool... so that means
+# ideally this will be a command line tool... so that means
 # doing something with this: http://www.diveintopython.net/scripts_and_streams/command_line_arguments.html
 ####################################
 
-######## INSTRUCTIONS FOR USE:######
+#####################################
+##		 INSTRUCTIONS FOR USE:		#
+#####################################
 ## py file must be in same folder as the topmost layer of the gene sequence folder.
 ## go to Tools > Build, or press cmd + B to run the script.
-#####################################
 
-
-#############################
-# SETTING UP DATA STRUCTURE
-#############################
+##############################
+# SETTING UP DATA STRUCTURE  #
+##############################
 
 # this is a library used to read files in
 import csv
@@ -42,7 +41,6 @@ class Case:
 		self.sample = sample;				#see example below class definition
 		self.tissue_type = tissue_type;
 	#attributes for the Case. These hold the filenames for data, and will hold data themselves.
-	# You can access a value by indexing the key.. ex: print genes_norms['gene_id'] >>> multiple_transcript_ids
 	genes_results = {"gene_id":"multiple_transcript_ids", #attribute variable with dictionary
 					"filename": ""}
 	genes_norms = {"gene_id":"normalized_count",
@@ -51,8 +49,8 @@ class Case:
 					"filename": ""}
 	def add_isoforms_norms_file(self,isoforms_norms_file): #functions to add attribute to the object...
 		path = pathToDataFiles + "/" + isoforms_norms_file;# filename passed from manifest needs it's path prepended.
-		self.isoforms_norms['filename'] = path;
-
+		self.isoforms_norms['filename'] = path; 			# so we use functions for the name, but when adding genes
+															#we'll do it like this  genes_norms['gene_id'] = line[1].
 	def add_genes_norms_file(self,genes_norms_file):
 		path = pathToDataFiles + "/" + genes_norms_file;
 		self.genes_norms['filename'] = path;
@@ -61,10 +59,7 @@ class Case:
 		path = pathToDataFiles + "/" + genes_results_file;
 		self.genes_results['filename'] = path;
 # you can add attributes (or attr's) to your cases by defining (or def) functions to input
-# check out the code i already wrote and mess figure out how it works...
 # learned from: http://sthurlow.com/python/lesson08/
-
-
 
 #############################
 #Reading in the file_manifest
@@ -193,37 +188,16 @@ if diffCheck: #if diffCheck is an array that is NOT empty
 else: # else, diffCheck is empty array
 	print "--verfication complete! The cabinet is up to date."
 
+print "\ttesting a single object for its data."
+currCase = cabinet[0];
+print "currCase: ", currCase.sample, "tissue_type:", currCase.tissue_type
+print "Displaying gene_id's and their normalized_counts for this sample."
+for key, val in currCase.genes_norms.iteritems():
+	print "gene_id:",key, "normalized_count:",val, "sample:",currCase.sample, "tissue_type:",currCase.tissue_type
+
+
 # Now all the associated files for each sample are in the same Case, all in the array called Cabinets
 
 # i need to go into each file for the results Larry needs for his research
 # instead of storing those values in python,
 # i want to output them into files that he can read with R or Perl...
-
-'''
-for case in cabinet:
-#test import of gene_results
-#Make for loop to go through whole cabinet?
-	filePath = case.genes_results['filename']
-	with open(filePath, 'rb') as f:
-		print "\n\nReading in Gene Results"
-		reader = csv.reader(f, delimiter="\t")
-		for line in reader:
-			arrayify = line[3].split(",")
-			case.genes_results[line[0]] = arrayify;
-
-	filePath = case.isoforms_norms_file
-	with open(filePath, 'rb') as f:
-		print "\n\nReading Isoforms Norms Results. Adding them to case in cabinet."
-		reader = csv.reader(f, delimiter="\t")
-		for line in reader:
-			case.isoforms_norms[line[0]] = line[1]
-
-
-	filePath = case.genes_norms['filename']
-	with open(filePath, 'rb') as f:
-		print "\n\nReading genes Norms Results. Adding them to case in cabinet."
-		reader = csv.reader(f, delimiter="\t")
-		for line in reader:
-			print line
-			#case.isoforms_norms[line[0]] = line[1]
-'''
