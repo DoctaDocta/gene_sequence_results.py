@@ -33,3 +33,4 @@ with con:
 
     for row in rows:
         print row
+

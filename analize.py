@@ -20,14 +20,14 @@
 ##############################
 # SETTING UP DATA STRUCTURE  #
 ##############################
-
 # this is a library used to read files in
 import csv
+# these libraries will help us write our info to a database. easiest to read in.
+import sqlite3 as lite
+import sys
 
-# we will fill this Cabinet array with objects of class TissueSample..
-# each index (like cabinet[0] or cabinet[1]) will have an object. See the class TissueSample below..
+# we will fill this Cabinet list with objects of class TissueSample..
 cabinet = [] # array will hold TissueSample objects, holding a tissue sample and it's data.
-samples = [] # array will hold just sample names to verify the cabinet.
 
 # file path's are relative to where the py script is saved. so they could cause problems if you aren't lookin the right place.
 manifestFile = "TCGA CHOL RNA-seq/file_manifest.txt"; #this is the manifest file path. it has sample names and filenames.
@@ -40,29 +40,29 @@ class TissueSample:
 	def __init__(self,sample): # function initializes class, must pass in a sample and tissue type.
 		self.sample = sample;				#see example below class definition
 	#attributes for the TissueSample. These hold the filenames for data, and will hold data themselves.
-	genes_results = {"gene_id":"multiple_transcript_ids", #attribute variable with dictionary
+	genes_results = {"gene_id":"multiple_transcript_ids", #attribute  with dictionary
 					"filename": ""}
-	genes_norms = {"gene_id":"normalized_count",
+	genes_norms = 	{"gene_id":"normalized_count",
 					"filename": ""}
 	isoforms_norms = {"isoform_id":"normalized_count",
-					"filename": ""}
+						"filename": ""}
 	tissue_type = "none";
 	def add_tissue_type(self,tt):
 		self.tissue_type = tt;
 	def add_isoforms_norms(self,isoforms_norms_file): #functions to add attribute to the object...
 		path = pathToDataFiles + "/" + isoforms_norms_file;# filename passed from manifest needs it's path prepended.
 		self.isoforms_norms['filename'] = path; 			# so we use functions for the name, but when adding genes
-		with open(path, 'rb') as f:
+		with open(path, 'rb') as f: #use the file we read in to get all its necessary contents
 			print "\t\tReading in Isoforms Normalized Results and storing in TissueSample in cabinet."
 			reader = csv.reader(f, delimiter="\t")
 			for line in reader:
-				self.isoforms_norms[line[0]] = line[1]
+				self.isoforms_norms[line[0]] = line[1] #add this data to the dict attribute above
 
 	def add_genes_norms(self,genes_norms_file):
 		path = pathToDataFiles + "/" + genes_norms_file;
 		self.genes_norms['filename'] = path;
 		with open(path, 'rb') as f:
-			print "\t\tReading in Genes Normalized Results and storing in TissueSample."
+			print "\t\tReading in Genes Normalized Results and storing in TissueSample in cabinet."
 			reader = csv.reader(f, delimiter="\t")
 			for line in reader:
 				self.genes_norms[line[0]] = line[1]
@@ -114,6 +114,7 @@ with open(manifestFile, 'rb') as f:
 
 				else:
 					print "\t\tthe associated barcode_filename is not needed"
+
 				fileInCabinet = False #now search is done, reset this indicator for next sample.
 			else: #the sample is not in Cabinet.
 				x = TissueSample(line[5]) #We make an new instance of the object
@@ -132,44 +133,54 @@ with open(manifestFile, 'rb') as f:
 		else: #this means the string "rsem." is not in line[6], therefore the line isn't important for our purposes.
 			print "\nLine",i,"does not contain a sample or proper barcode_filename\n"
 
-#reading in tissuetype. THIS DOESNT WORK YET.
-tissue_type_file = "tcga CHOL sample bar code_tissuetype.csv"
-
-with open(tissue_type_file, 'rb') as f:
-	reader = csv.reader(f, delimiter=",")
-
-	print "Reading in tissue type, line by line..."
-	currCase = 'n/a';
-	tissue = 'n/a';
-	for line in reader:
-		print 'line0:',line[0],'line1', line[1]
-		if (line[0].strip() == 0):
-			currCase = line[1]
-			print 'current TissueSample:',currCase
-		else:
-			for thing in cabinet:
-				if (thing.sample == currCase):
-					thing.add_tissue_type(line[1])
-					print 'added tissue tupe to TissueSample'
-
-
-
 #Printing the cabinet to console!
 print "\n\nOverview of Filing Cabinet w/ shortened filenames..."
 print '-' * 55
 for l in cabinet:
-	print "\tcase:",cabinet.index(l),l.sample, l.genes_results['filename'].split("rsem.",1)[1], l.genes_norms['filename'].split("rsem.",1)[1], l.isoforms_norms['filename'].split("rsem.",1)[1], '\n'
+	print "\tcase:",cabinet.index(l),l.sample, l.genes_results['filename'].split("rsem.",1)[1], l.genes_norms['filename'].split("rsem.",1)[1], l.isoforms_norms['filename'].split("rsem.",1)[1],l.tissue_type,'\n'
 print "Overview of Filing Cabinet w/ shortened filenames printed above."
 print '--length of cabinet: ', len(cabinet)
 
+#reading in tissuetype. THIS DOESNT WORK YET.
+tissue_type_file = "tcga CHOL sample bar code_tissuetype.csv"
+currCase = 'empty';
+tissue = 'empty';
+with open(tissue_type_file, 'rb') as f:
+	reader = csv.reader(f, delimiter=",")
+	print "Reading in tissue type, line by line..."
+	print "current case:", currCase, "current tissue:", tissue
+	ctr = 0;
+	for line in reader:
+		print "currCase:", currCase
+		if (int(line[0]) == 0): #int() converts string to integer
+			print 'line', ctr, '\nline0:',line[0],'line1:', line[1]
+			currCase = line[1]
+			print 'current TissueSample:',currCase
+		else:
+			print '\nline', ctr, '\nline0:',line[0],'line1:', line[1]
+			tissue = line[1]
+			print 'current tissueType:', tissue
+			for thing in cabinet:
+				#print "thing[:15]", thing.sample[:15]
+				if (thing.sample[:15] == currCase):
+					thing.add_tissue_type(tissue)
+					print 'added tissue tupe to TissueSample', tissue
+			currCase = 'reset'
+			tissue = "reset"
+		ctr = ctr + 1;
+
+
+
 #Testing one object for its gene_id data.
+#will throw this into SQL.
+'''
 print "\n\ntesting a single object for its data."
 currCase = cabinet[0];
 print "currCase: ", currCase.sample, "tissue_type:", currCase.tissue_type
 print "Displaying gene_id's and their normalized_counts for this sample."
 for key, val in currCase.genes_norms.iteritems():
 	print "gene_id:",key, "normalized_count:",val, "sample:",currCase.sample, "tissue_type:",currCase.tissue_type
-
 # instead of storing those values in python,
 # i want to output them into files that he can read with R or Perl...
 #one file for each sample?
+'''
