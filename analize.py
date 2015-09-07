@@ -53,7 +53,7 @@ class TissueSample:
 		path = pathToDataFiles + "/" + isoforms_norms_file;# filename passed from manifest needs it's path prepended.
 		self.isoforms_norms['filename'] = path; 			# so we use functions for the name, but when adding genes
 		with open(path, 'rb') as f:
-			print "\n\nReading in Isoforms Normalized Results and storing in TissueSample in cabinet."
+			print "\t\tReading in Isoforms Normalized Results and storing in TissueSample in cabinet."
 			reader = csv.reader(f, delimiter="\t")
 			for line in reader:
 				self.isoforms_norms[line[0]] = line[1]
@@ -62,7 +62,7 @@ class TissueSample:
 		path = pathToDataFiles + "/" + genes_norms_file;
 		self.genes_norms['filename'] = path;
 		with open(path, 'rb') as f:
-			print "\n\nReading in Genes Normalized Results and storing in TissueSample."
+			print "\t\tReading in Genes Normalized Results and storing in TissueSample."
 			reader = csv.reader(f, delimiter="\t")
 			for line in reader:
 				self.genes_norms[line[0]] = line[1]
@@ -71,7 +71,7 @@ class TissueSample:
 		path = pathToDataFiles + "/" + genes_results_file;
 		self.genes_results['filename'] = path;
 		with open(path, 'rb') as f:
-			print "\n\nReading in Gene Results and adding to TissueSample in cabinet"
+			print "\t\tReading in Gene Results and adding to TissueSample in cabinet"
 			reader = csv.reader(f, delimiter="\t")
 			for line in reader:
 				arrayify = line[3].split(",")
@@ -94,14 +94,13 @@ with open(manifestFile, 'rb') as f:
 		i = i+1
 		if "rsem" in line[6]:#remove top 3 rows, and also two quantification filename_barcodes per sample b/c unnecessary
 			print "\nLine", i,"from manifest. Sample:", line[5], "\n\t\tBarcode_filename: ",line[6].split("rsem.",1)[1]
-			samples.append(line[5]) #not necassary, collects sample names for comparison to cabinet.
-			#print "\t\tCurrent state of Cabinet:"
-			for l in cabinet:
+
+			for l in cabinet: #search the cabinet for this key
 				if (line[5] == l.sample): #the sample is already in cabinet.
+					print "\t\tFound the TissueSample in cabinet! placeHolder: ", placeHolder
 					fileInCabinet = True; #change boolean for flow control.s
 					placeHolder = cabinet.index(l); #find position of the TissueSample
-					print "		Found the TissueSample in cabinet"
-					print "		placeHolder: ", placeHolder, "for TissueSample in cabinet"
+
 			if (fileInCabinet == True): #this needs to be after the for loop searching cabinet.
 										#b/c we search the whole cabinet for the file.
 				if "genes.normalized" in line[6]:
@@ -119,7 +118,7 @@ with open(manifestFile, 'rb') as f:
 			else: #the sample is not in Cabinet.
 				x = TissueSample(line[5]) #We make an new instance of the object
 
-				print "\t\tTissueSample wasn't found in cabinet. Adding new case with sample", x.sample, " to cabinet"
+				print "\t\tTissueSample is not in cabinet. Adding new case with sample", x.sample
 				if "genes.normalized" in line[6]:
 					x.add_genes_norms(line[6])
 
@@ -131,7 +130,7 @@ with open(manifestFile, 'rb') as f:
 
 				cabinet.append(x) #and add it to the cabinet.
 		else: #this means the string "rsem." is not in line[6], therefore the line isn't important for our purposes.
-			print "current row",i,"does not contain a sample or proper barcode_filename\n"
+			print "\nLine",i,"does not contain a sample or proper barcode_filename\n"
 
 #reading in tissuetype. THIS DOESNT WORK YET.
 tissue_type_file = "tcga CHOL sample bar code_tissuetype.csv"
@@ -148,9 +147,9 @@ with open(tissue_type_file, 'rb') as f:
 			currCase = line[1]
 			print 'current TissueSample:',currCase
 		else:
-			for ass in cabinet:
-				if (ass.sample == currCase):
-					ass.add_tissue_type(line[1])
+			for thing in cabinet:
+				if (thing.sample == currCase):
+					thing.add_tissue_type(line[1])
 					print 'added tissue tupe to TissueSample'
 
 
