@@ -2,6 +2,25 @@
 #####################################
 #		 ABOUT THIS SCRIPY 			#
 #####################################
+
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+# UNCOMMENT THE LINE 'PRINT TMPLIST' NEAR LINE 102. IT WILL EXPOSE THE GENES FOR YOU TO SEE.
+
 # This script will read the results of sequenced barcodes of tissue
 # so they can easily be searched and organized by the scientist.
 # URL to retreive gene sequencing data for CCA tissue: https://tcga-data.nci.nih.gov/tcga/tcgaCancerDetails.jsp?diseaseType=CHOL&diseaseName=Cholangiocarcinoma
@@ -33,11 +52,15 @@ cur.execute("CREATE TABLE genes (id text, count real, barcode text, tissue text)
 
 # we will fill this Cabinet list with objects of class TissueSample..
 cabinet = [] # array will hold TissueSample objects, holding a tissue barcode and it's data.
+
 # file path's are relative to where the py script is saved. so they could cause problems if you aren't lookin the right place.
 manifestFile = "TCGA CHOL RNA-seq/file_manifest.txt"; #this is the manifest file path. it has barcode names and filenames.
 #append this before each barcode filename so python can find the file.
-pathToDataFiles = "TCGA CHOL RNA-seq/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/"
-filenameKeywords = ["genes.results","genes.normalized","isoforms.normalized"]
+pathToDataFiles = "TCGA CHOL RNA-seq/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/";
+filenameKeywords = ["genes.results","genes.normalized","isoforms.normalized"];
+tissue_type_file = "tcga CHOL sample bar code_tissuetype.csv";
+
+
 
 geneIds = [];
 tmpList = [];
@@ -58,39 +81,32 @@ class TissueSample:
 
 	def find_tissue_type(self):
 		self.tissue_type = tissueTypeDict[self.sample];
-		print "Found tissue type.", self.barcode, self.tissue_type
+		print "\t\tFound tissue type.", self.barcode, self.tissue_type, "Added to cabinet!"
 
-	def add_isoforms_ids(self):
+	'''def add_isoforms_ids(self):
 		with open(self.genes_results['filename'], 'rb') as f: #use the file we read in to get all its necessary contents
 				print "\t\tReading in corresponding Genes and Isoforms IDs, and each iso_id normcount. Writing to Database."
 				reader = csv.reader(f, delimiter="\t")
 				for line in reader:
 					arrayify = line[3].split(",") #arrafiy is a list of transcript ids. they match to isoforms norms file.
 					self.genes_results[line[0]] = arrayify;
-		with open(self.isoforms_norms['filename'], 'rb') as f:
-			reader = csv.reader(f, delimiter='\t')
-			for line in reader:
-				isoform_id = line[0]
-				normcount = line[1]
-
-
+	'''
 	def add_isoforms_norms(self,isoforms_norms_file): #functions to add attribute to the object...
 		path = pathToDataFiles + isoforms_norms_file;# filename passed from manifest needs it's path prepended.
 		self.isoforms_norms['filename'] = path; 			# so we use functions for the name, but when adding genes
-		if (self.genes_results['filename']):
+		'''if (self.genes_results['filename']):
 			with open(path, 'rb') as f: #use the file we read in to get all its necessary contents
 				print "\t\tReading in Isoforms Normalized Results and storing in TissueSample in cabinet."
 				reader = csv.reader(f, delimiter="\t")
 				for line in reader:
 					self.isoforms_norms[line[0]] = line[1] #add this data to the dict attribute above
-
+		'''
 	def add_genes_norms(self,genes_norms_file):
 		path = pathToDataFiles + genes_norms_file;
 		self.genes_norms['filename'] = path;
 		with open(path, 'rb') as f:
-			print "\t\tReading in Genes Normalized Results and storing in TissueSample in cabinet."
+			print "\t\tReading in Genes Normalized Results and executing to DB. This may take a while..."
 			reader = csv.reader(f, delimiter="\t")
-			geneIds = [];
 			tmpList = [];
 			for line in reader:
 				tmpList = [];
@@ -98,7 +114,7 @@ class TissueSample:
 				tmpList.extend([line[0],line[1],self.barcode,self.tissue_type]);
 				print tmpList
 				cur.execute('INSERT INTO genes VALUES (?,?,?,?)', tmpList)
-				con.commit()
+				#con.commit()
 		#cur.execute("SELECT * FROM genes")
 		#rows = cur.fetchall()
 		#for row in rows:
@@ -108,14 +124,19 @@ class TissueSample:
 	def add_genes_results(self,genes_results_file):
 		path = pathToDataFiles + genes_results_file;
 		self.genes_results['filename'] = path;
-		if (self.isoforms_norms['filename']):
-			with open(path, 'rb') as f:
-				print "\t\tReading in Gene Results and adding to TissueSample in cabinet"
-				reader = csv.reader(f, delimiter="\t")
+		'''with open(path, 'rb') as f:
+			print "\t\tReading in Gene Results and adding to TissueSample in cabinet"
+			reader = csv.reader(f, delimiter="\t")
+			if (self.isoforms_norms['filename']):
+				for line in reader:
+					arrayify = line[3].split(",") #arrafiy is a list of transcript ids. they match to isoforms norms file.
+
+					self.genes_results([line[0]]) = {isoform_id[]}
+			else:
 				for line in reader:
 					arrayify = line[3].split(",") #arrafiy is a list of transcript ids. they match to isoforms norms file.
 					self.genes_results[line[0]] = arrayify;
-
+		'''
 
 # you can add attributes (or attr's) to your cases by defining (or def) functions to input
 # learned from: http://sthurlow.com/python/lesson08/
@@ -123,7 +144,6 @@ class TissueSample:
 ########################################################
 #Reading Samples: Tissue Types. Adding to dictionary.###
 ########################################################
-tissue_type_file = "tcga CHOL sample bar code_tissuetype.csv"
 tissueTypeDict = {};
 currCase = 'empty';
 tissue = 'empty';
@@ -160,10 +180,9 @@ with open(manifestFile, 'rb') as f:
 			#search the cabinet for this key
 			for l in cabinet:
 				if (line[5] == l.barcode): #the barcode is already in cabinet.
-					print "\t\tFound the TissueSample in cabinet! placeHolder: ", placeHolder
 					fileInCabinet = True; #change boolean for flow control.s
 					placeHolder = cabinet.index(l); #find position of the TissueSample
-
+					print "\t\tFound the TissueSample in cabinet! placeHolder: ", placeHolder
 			if (fileInCabinet == True): #this needs to be after the for loop searching cabinet.
 										#b/c we search the whole cabinet for the file.
 				if "genes.normalized" in line[6]:
@@ -188,30 +207,12 @@ with open(manifestFile, 'rb') as f:
 
 
 #Printing the cabinet to console!
-print "\n\nOverview of Filing Cabinet w/ shortened filenames..."
 print '-' * 55
 #for l in cabinet:
-	#l.sqlify()
 	#print "\tcase:",cabinet.index(l),l.barcode, l.genes_results['filename'].split("rsem.",1)[1], l.genes_norms['filename'].split("rsem.",1)[1], l.isoforms_norms['filename'].split("rsem.",1)[1],l.tissue_type,'\n'
 print "Overview of Filing Cabinet w/ shortened filenames printed above."
 print '--length of cabinet: ', len(cabinet)
 
-
-#Export Cabinet to SQLite Database.
-
-'''
-#Testing one object for its gene_id data.
-#will throw this into SQL.
-print "\n\ntesting a single object for its data."
-currCase = cabinet[0];
-print "currCase: ", currCase.barcode, "tissue_type:", currCase.tissue_type
-print "Displaying gene_id's and their normalized_counts for this barcode."
-for key, val in currCase.genes_norms.iteritems():
-	print "gene_id:",key, "normalized_count:",val, "barcode:",currCase.barcode, "tissue_type:",currCase.tissue_type
-# instead of storing those values in python,
-# i want to output them into files that he can read with R or Perl...
-#one file for each barcode?
-'''
 
 con.commit()
 con.close()
