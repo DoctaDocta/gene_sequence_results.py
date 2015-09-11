@@ -112,7 +112,7 @@ class TissueSample:
 				tmpList = [];
 				#self.genes_norms[line[0]] = line[1]
 				tmpList.extend([line[0],line[1],self.barcode,self.tissue_type]);
-				print tmpList
+				#print tmpList
 				cur.execute('INSERT INTO genes VALUES (?,?,?,?)', tmpList)
 				#con.commit()
 		#cur.execute("SELECT * FROM genes")
@@ -205,6 +205,10 @@ with open(manifestFile, 'rb') as f:
 		else: #this means the string "rsem." is not in line[6], therefore the line isn't important for our purposes.
 			print "\nLine",i,"does not contain a barcode or proper filename\n"
 
+cur.execute("SELECT * FROM genes")
+rows = cur.fetchall()
+for row in rows:
+	print row
 
 #Printing the cabinet to console!
 print '-' * 55
